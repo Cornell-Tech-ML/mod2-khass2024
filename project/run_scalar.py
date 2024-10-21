@@ -80,7 +80,6 @@ class ScalarTrain:
             optim.zero_grad()
 
             # Forward
-            print("I am starting Forward")
             loss = 0
             for i in range(data.N):
                 x_1, x_2 = data.X[i]
@@ -102,11 +101,7 @@ class ScalarTrain:
             losses.append(total_loss)
 
             # Update
-            print("I am starting Update")
-            import pdb; pdb.set_trace()
             optim.step()
-            print("I am done with Update")
-            import pdb; pdb.set_trace()
 
             # Logging
             if epoch % 10 == 0 or epoch == max_epochs:
