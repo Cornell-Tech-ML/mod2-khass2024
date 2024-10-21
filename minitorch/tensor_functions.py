@@ -254,7 +254,7 @@ class Sigmoid(Function):
 
         """
         (sigmoid_output,) = ctx.saved_values
-        return grad_output * sigmoid_output * (1 - sigmoid_output)
+        return grad_output * sigmoid_output * (sigmoid_output * -1 + 1.0)
 
 
 class ReLU(Function):
@@ -290,7 +290,7 @@ class ReLU(Function):
 
         """
         (t1,) = ctx.saved_values
-        return grad_output * (t1._tensor > 0)
+        return grad_output * (t1 > 0)
 
 
 class Log(Function):
@@ -389,7 +389,7 @@ class Sum(Function):
             return a.f.add_reduce(a.contiguous().view(int(operators.prod(a.shape))), 0)
 
     @staticmethod
-    def backward(ctx: Context, grad_output: Tensor) -> Tuple[Tensor, Optional[Tensor]]:
+    def backward(ctx: Context, grad_output: Tensor) -> Tensor:
         """Compute gradients for the sum operation.
 
         Args:
@@ -399,16 +399,17 @@ class Sum(Function):
 
         Returns:
         -------
-            Tuple[Tensor, Optional[Tensor]]: Gradients with respect to the input and dimension.
+            Tensor: Gradient with respect to the input.
 
         """
         a_shape, dim = ctx.saved_values
         if dim is None:
             out = grad_output.zeros(a_shape)
             out._tensor._storage[:] = grad_output[0]
-            return out, None
+            return out
         else:
-            return grad_output, None
+            # Broadcast grad_output to match the shape of the input tensor
+            return grad_output.expand(a_shape)
 
 
 class LT(Function):
