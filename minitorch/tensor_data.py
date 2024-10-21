@@ -90,12 +90,14 @@ def broadcast_index(
 
     """
     # TODO: Implement for Task 2.2.
-    out_index.fill(0)
+    offset = len(big_shape) - len(shape)
     for i in range(len(shape)):
-        if i >= len(big_shape) - len(shape):
-            big_dim = i - (len(shape) - len(big_shape))
-            if big_shape[big_dim] > 1:
-                out_index[i] = big_index[big_dim]
+        if i + offset >= len(big_shape) or shape[i] == big_shape[i + offset]:
+            out_index[i] = big_index[i + offset]
+        elif shape[i] == 1:
+            out_index[i] = 0
+        else:
+            raise ValueError("Cannot broadcast shapes")
 
 
 def shape_broadcast(shape1: UserShape, shape2: UserShape) -> UserShape:
