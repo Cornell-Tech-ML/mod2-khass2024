@@ -1,10 +1,9 @@
 """Collection of the core mathematical operators used throughout the code base."""
 
 import math
+from typing import Callable, Iterable, List
 
 # ## Task 0.1
-from typing import Callable, Iterable
-
 #
 # Implementation of a prelude of elementary functions.
 
@@ -53,14 +52,14 @@ def neg(x: float) -> float:
     return -x
 
 
-def lt(x: float, y: float) -> bool:
+def lt(x: float, y: float) -> float:
     """Checks if one number is less than another."""
-    return x < y
+    return 1.0 if x < y else 0.0
 
 
-def eq(x: float, y: float) -> bool:
+def eq(x: float, y: float) -> float:
     """Checks if two numbers are equal."""
-    return x == y
+    return 1.0 if x == y else 0.0
 
 
 def max(x: float, y: float) -> float:
@@ -75,7 +74,10 @@ def is_close(x: float, y: float) -> bool:
 
 def sigmoid(x: float) -> float:
     """Calculates the sigmoid function."""
-    return 1.0 / (1.0 + math.exp(-x)) if x >= 0 else math.exp(x) / (1.0 + math.exp(x))
+    if x >= 0:
+        return 1.0 / (1.0 + math.exp(-x))
+    else:
+        return math.exp(x) / (1.0 + math.exp(x))
 
 
 def relu(x: float) -> float:
@@ -83,9 +85,12 @@ def relu(x: float) -> float:
     return x if x > 0 else 0
 
 
+EPS = 1e-6
+
+
 def log(x: float) -> float:
     """Calculates the natural logarithm."""
-    return math.log(x)
+    return math.log(x + EPS)
 
 
 def exp(x: float) -> float:
@@ -132,127 +137,82 @@ def relu_back(x: float, y: float) -> float:
 # TODO: Implement for Task 0.3.
 
 
-def map(fn: Callable[[float], float], ls: Iterable[float]) -> Iterable[float]:
-    """Apply a function to each element in an iterable.
+def map(fn: Callable[[float], float]) -> Callable[[Iterable[float]], List[float]]:
+    """Apply a function to each element in an iterable."""
 
-    Args:
-    ----
-        fn: A function that takes a float and returns a float.
-        ls: An iterable of floats.
+    def _map(ls: Iterable[float]) -> List[float]:
+        ret = []
+        for x in ls:
+            ret.append(fn(x))
+        return ret
 
-    Returns:
-    -------
-        An iterable of floats resulting from applying fn to each element in ls.
-
-    """
-    return (fn(x) for x in ls)
+    return _map
 
 
 def zipWith(
-    fn: Callable[[float, float], float], ls1: Iterable[float], ls2: Iterable[float]
-) -> Iterable[float]:
-    """Apply a function to pairs of elements from two iterables.
+    fn: Callable[[float, float], float],
+) -> Callable[[Iterable[float], Iterable[float]], List[float]]:
+    """Higher-order zipwith (or map2).
 
     Args:
     ----
         fn: A function that takes two floats and returns a float.
-        ls1: The first iterable of floats.
-        ls2: The second iterable of floats.
 
     Returns:
     -------
-        An iterable of floats resulting from applying fn to pairs of elements from ls1 and ls2.
+        A function that takes two iterables and returns a list of floats.
 
     """
-    return (fn(x, y) for x, y in zip(ls1, ls2))
+
+    def _zipWith(ls1: Iterable[float], ls2: Iterable[float]) -> List[float]:
+        ret = []
+        for x, y in zip(ls1, ls2):
+            ret.append(fn(x, y))
+        return ret
+
+    return _zipWith
 
 
-def reduce(fn: Callable[[float, float], float], ls: Iterable[float]) -> float:
-    """Reduce an iterable to a single value using a binary function.
+def reduce(
+    fn: Callable[[float, float], float], start: float
+) -> Callable[[Iterable[float]], float]:
+    """Higher-order reduce.
 
     Args:
     ----
         fn: A function that takes two floats and returns a float.
-        ls: An iterable of floats.
+        start: The starting value for the reduction.
 
     Returns:
     -------
-        A float resulting from repeatedly applying fn to the elements of ls.
-
-    Raises:
-    ------
-        ValueError: If ls is empty.
+        A function that takes an iterable of floats and returns a float.
 
     """
-    iterator = iter(ls)
-    try:
-        result = next(iterator)
-    except StopIteration:
-        raise ValueError("Cannot reduce an empty iterable")
-    for x in iterator:
-        result = fn(result, x)
-    return result
+
+    def _reduce(ls: Iterable[float]) -> float:
+        val = start
+        for l in ls:
+            val = fn(val, l)
+        return val
+
+    return _reduce
 
 
 def negList(ls: Iterable[float]) -> Iterable[float]:
-    """Negate all elements in an iterable.
-
-    Args:
-    ----
-        ls: An iterable of floats.
-
-    Returns:
-    -------
-        An iterable of floats where each element is the negation of the corresponding element in ls.
-
-    """
-    return map(neg, ls)
+    """Use :func: 'map' to negate all elements in an iterable."""
+    return map(neg)(ls)
 
 
 def addLists(ls1: Iterable[float], ls2: Iterable[float]) -> Iterable[float]:
-    """Add corresponding elements of two iterables.
-
-    Args:
-    ----
-        ls1: The first iterable of floats.
-        ls2: The second iterable of floats.
-
-    Returns:
-    -------
-        An iterable of floats where each element is the sum of the corresponding elements in ls1 and ls2.
-
-    """
-    return zipWith(add, ls1, ls2)
+    """Add the elements of 'ls1' and 'ls2' using :func: 'zipWith' and :func: 'add'"""
+    return zipWith(add)(ls1, ls2)
 
 
 def sum(ls: Iterable[float]) -> float:
-    """Calculate the sum of all elements in an iterable.
-
-    Args:
-    ----
-        ls: An iterable of floats.
-
-    Returns:
-    -------
-        The sum of all elements in ls, or 0 if ls is empty.
-
-    """
-    try:
-        return reduce(add, ls)
-    except ValueError:
-        return 0.0
+    """Sum up a list using :func: 'reduce' and :func: 'add'."""
+    return reduce(add, 0.0)(ls)
 
 
 def prod(ls: Iterable[float]) -> float:
-    """Calculate the product of all elements in an iterable.
-
-    Args:
-    ----
-        ls: An iterable of floats.
-
-    Returns:
-    -------
-        The product of all elements in ls.
-
-    """
-    return reduce(mul, ls)
+    """Product of a list using :func: 'reduce' and :func: 'mul'."""
+    return reduce(mul, 1.0)(ls)

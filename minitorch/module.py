@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Dict, Optional, Sequence, Tuple
+from typing import Any, Dict, Optional, Sequence, Iterable
 
 
 class Module:
@@ -32,39 +32,38 @@ class Module:
     def train(self) -> None:
         """Set the `training` flag of this and descendent to true."""
         # TODO: Implement for Task 0.4.
-        self.training = True
         for module in self.modules():
             module.train()
+        self.training = True
 
     def eval(self) -> None:
         """Set the `training` flag of this and descendent to false."""
         # TODO: Implement for Task 0.4.
-        self.training = False
         for module in self.modules():
             module.eval()
+        self.training = False
 
-    def named_parameters(self) -> Sequence[Tuple[str, Parameter]]:
+    def named_parameters(self) -> Dict[str, Parameter]:
         """Collect all the parameters of this module and its descendents.
 
         Returns
         -------
-            The name and `Parameter` of each ancestor parameter.
+            dict: Each name (key) and :class: 'Parameter' (value) under this module.
 
         """
-        result = []
-        result.extend(self._parameters.items())
-        for name, module in self._modules.items():
-            for sub_name, param in module.named_parameters():
-                result.append((f"{name}.{sub_name}", param))
-        return result
+        parameters = {}
+        for k, v in self._parameters.items():
+            parameters[k] = v
 
-    def parameters(self) -> Sequence[Parameter]:
+        for mod_name, m in self._modules.items():
+            for k, v in m.named_parameters().items():
+                parameters[f"{mod_name}.{k}"] = v
+
+        return parameters
+
+    def parameters(self) -> Iterable[Parameter]:
         """Enumerate over all the parameters of this module and its descendents."""
-        result = []
-        result.extend(self._parameters.values())
-        for module in self._modules.values():
-            result.extend(module.parameters())
-        return result
+        return self.named_parameters().values()
 
     def add_parameter(self, k: str, v: Any) -> Parameter:
         """Manually add a parameter. Useful helper for scalar parameters.
