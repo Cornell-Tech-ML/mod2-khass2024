@@ -491,7 +491,9 @@ class Tensor:
             Tensor: A tensor containing the sum.
 
         """
-        return Sum.apply(self, self._ensure_tensor(dim) if dim is not None else None)
+        dim_tensor = self._ensure_tensor(0 if dim is None else dim)
+        tensor_to_sum = self.contiguous().view(self.size) if dim is None else self
+        return Sum.apply(tensor_to_sum, dim_tensor)
 
     def mean(self, dim: Optional[int] = None) -> Tensor:
         """Computes the mean of all elements in the tensor or along a specific dimension.

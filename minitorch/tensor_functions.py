@@ -383,10 +383,12 @@ class Sum(Function):
 
         """
         ctx.save_for_backward(a.shape, dim)
-        if dim is not None:
-            return a.f.add_reduce(a, int(dim.item()))
+
+        if dim is None:
+            return a.f.add_reduce(a)
         else:
-            return a.f.add_reduce(a.contiguous().view(int(operators.prod(a.shape))), 0)
+            dim_value = int(dim.item())
+            return a.f.add_reduce(a, dim_value)
 
     @staticmethod
     def backward(ctx: Context, grad_output: Tensor) -> Tensor:
@@ -402,14 +404,7 @@ class Sum(Function):
             Tensor: Gradient with respect to the input.
 
         """
-        a_shape, dim = ctx.saved_values
-        if dim is None:
-            out = grad_output.zeros(a_shape)
-            out._tensor._storage[:] = grad_output[0]
-            return out
-        else:
-            # Broadcast grad_output to match the shape of the input tensor
-            return grad_output.expand(a_shape)
+        return grad_output, 0.0
 
 
 class LT(Function):
@@ -521,11 +516,14 @@ class Permute(Function):
             Tensor: The permuted tensor.
 
         """
-        ctx.save_for_backward(order)
-        return a._new(a._tensor.permute(*[int(i) for i in order]))
+        permutation = order._tensor._storage.astype(int).tolist()
+        ctx.save_for_backward(permutation)
+        permuted_data = a._tensor.permute(*permutation)
+        result = a.__class__(permuted_data, backend=a.backend)
+        return result
 
     @staticmethod
-    def backward(ctx: Context, grad_output: Tensor) -> Tuple[Tensor, Tensor]:
+    def backward(ctx: Context, grad_output: Tensor) -> Tuple[Tensor, float]:
         """Compute gradients for the permute operation.
 
         Args:
@@ -539,12 +537,15 @@ class Permute(Function):
 
         """
         (order,) = ctx.saved_values
-        order2 = [0] * len(order)
-        for i, j in enumerate(order):
-            order2[int(j)] = i
-        return grad_output._new(grad_output._tensor.permute(*order2)), zeros(
-            order.shape
-        )
+
+        inv_order = [-1] * len(order)
+        for i, v in enumerate(order):
+            inv_order[v] = i
+
+        permuted_grad = grad_output._tensor.permute(*inv_order)
+        grad_input = grad_output._new(permuted_grad)
+
+        return grad_input, 0.0
 
 
 class View(Function):
