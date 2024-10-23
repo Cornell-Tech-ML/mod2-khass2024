@@ -230,22 +230,24 @@ class SimpleOps(TensorOps):
     def matrix_multiply(a: "Tensor", b: "Tensor") -> "Tensor":
         """Matrix multiplication"""
         # Ensure the dimensions are compatible for matrix multiplication
-        assert a.shape[-1] == b.shape[-2], "Incompatible matrix dimensions for multiplication"
-        
+        assert (
+            a.shape[-1] == b.shape[-2]
+        ), "Incompatible matrix dimensions for multiplication"
+
         # Determine the shape of the output tensor
-        out_shape = a.shape[:-1] + b.shape[:-2] + (b.shape[-1],)
-        
+        out_shape = tuple(list(a.shape[:-1]) + [b.shape[-1]])
+
         # Create the output tensor
         out = a.zeros(out_shape)
-        
+
         # Perform matrix multiplication
         for i in range(out_shape[0]):
-            for j in range(out_shape[1]):
+            for j in range(out_shape[-1]):
                 sum = 0.0
                 for k in range(a.shape[-1]):
                     sum += a[i, k] * b[k, j]
                 out[i, j] = sum
-        
+
         return out
 
     is_cuda = False
