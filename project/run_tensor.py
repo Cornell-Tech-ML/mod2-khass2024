@@ -31,7 +31,7 @@ class Linear(minitorch.Module):
         self.bias = RParam(out_size)
 
     def forward(self, x):
-        return x @ self.weights + self.bias
+        return x @ self.weights.value + self.bias.value
 
 
 def default_log_fn(epoch, total_loss, correct, losses):
