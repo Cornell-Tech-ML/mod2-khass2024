@@ -18,7 +18,7 @@ The files that will be synced are:
 
         minitorch/operators.py minitorch/module.py minitorch/autodiff.py minitorch/scalar.py minitorch/scalar_functions.py minitorch/module.py project/run_manual.py project/run_scalar.py project/datasets.py
 
-Simple Dataset:  
+## **Simple Dataset:**  
 Training time per epoch: 0.038s
 
 ![Alt text](simple.png)
@@ -26,7 +26,7 @@ Training time per epoch: 0.038s
 Final accuracy: 100.00%  
 Hidden layers: 2
 
-Diag Dataset:  
+## **Diag Dataset:**
 Training time per epoch: 0.044s
 
 ![Alt text](diag.png)
@@ -34,7 +34,7 @@ Training time per epoch: 0.044s
 Final accuracy: 100.00%  
 Hidden layers: 2
 
-Split Dataset:
+## **Split Dataset:**  
 Training time per epoch: 0.164s
 
 ![Alt text](split.png)
@@ -42,7 +42,7 @@ Training time per epoch: 0.164s
 Final accuracy: 96.00%  
 Hidden layers: 8  
 
-Xor Dataset:
+## **Xor Dataset:**  
 Training time per epoch: 0.164s
 
 ![Alt text](xor.png)
