@@ -385,13 +385,13 @@ class Sum(Function):
         ctx.save_for_backward(a.shape, dim)
 
         if dim is None:
-            return a.f.add_reduce(a)
+            return a.f.add_reduce(a.contiguous().view(int(operators.prod(a.shape))), 0)
         else:
             dim_value = int(dim.item())
             return a.f.add_reduce(a, dim_value)
 
     @staticmethod
-    def backward(ctx: Context, grad_output: Tensor) -> Tensor:
+    def backward(ctx: Context, grad_output: Tensor) -> Tuple[Tensor, float]:
         """Compute gradients for the sum operation.
 
         Args:
